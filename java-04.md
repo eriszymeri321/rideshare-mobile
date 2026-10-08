@@ -22,15 +22,15 @@ Aplikacioni lexon udhëtimet në anën e serverit nga PostgreSQL përmes Neon. `
 
 `npm run lint` dhe `npm run build` përfunduan me sukses.
 
-### Prova 1 — Lista nga Neon dhe ndryshimi i të dhënave
+### Prova 1: Lista nga Neon dhe ndryshimi i të dhënave
 
 Ekzekutova `schema.sql` në Neon dhe konfirmova tri rreshta. Nisa aplikacionin lokal me `npm run dev`; lista shfaqi tri udhëtimet. Ndryshova orën e udhëtimit 2 në `08:25` në SQL Editor, rifreskova faqen dhe pashë orën e re; pastaj e ktheva në `08:15`.
 
-### Prova 2 — Udhëtim pa vende dhe ID që mungon
+### Prova 2: Udhëtim pa vende dhe ID që mungon
 
 Në listë, udhëtimi 3 (Lipjan) shfaqi `0` vende dhe butoni për kërkesë ishte i çaktivizuar. Hapa `/udhetimi/99` dhe pashë mesazhin “Udhëtimi nuk u gjet”.
 
-### Prova 3 — Gabimi kur mungon lidhja me databazën
+### Prova 3: Gabimi kur mungon lidhja me databazën
 
 Riemërtova përkohësisht `DATABASE_URL` në `.env.local`, ndalova dhe rinisa serverin lokal. Faqja shfaqi “Nuk u lidhëm me databazën. Provo përsëri.” Pastaj riktheva emrin `DATABASE_URL`, rinisa serverin dhe rifreskova faqen; tri udhëtimet u shfaqën përsëri. Skedari `.env.local` nuk u publikua.
 
