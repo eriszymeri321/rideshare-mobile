@@ -32,7 +32,7 @@ Në listë, udhëtimi 3 (Lipjan) shfaqi `0` vende dhe butoni për kërkesë isht
 
 ### Prova 3 — Gabimi kur mungon lidhja me databazën
 
-Nuk e çaktivizova `DATABASE_URL` për këtë provë, prandaj rezultatin nuk e kam verifikuar dhe nuk po e paraqes si të kryer. Për ta provuar: ndalo serverin, riemërto përkohësisht `DATABASE_URL` në `.env.local`, rinise serverin dhe kontrollo mesazhin e gabimit; pastaj rikthe emrin `DATABASE_URL` dhe rinise përsëri. Mos e fotografo ose publiko `.env.local`.
+Riemërtova përkohësisht `DATABASE_URL` në `.env.local`, ndalova dhe rinisa serverin lokal. Faqja shfaqi “Nuk u lidhëm me databazën. Provo përsëri.” Pastaj riktheva emrin `DATABASE_URL`, rinisa serverin dhe rifreskova faqen; tri udhëtimet u shfaqën përsëri. Skedari `.env.local` nuk u publikua.
 
 ## Prova në çift dhe rezultatet
 
