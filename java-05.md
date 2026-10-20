@@ -4,7 +4,7 @@ Repository: https://github.com/eriszymeri321/rideshare-mobile
 
 ## Prova 1 · Sesioni
 
-Hapat: Hapa aplikacionin lokal, shtypa hyrjen me GitHub dhe u ktheva te `/panel`, ku u shfaqën përdoruesi dhe roli. Shtypa **Dil**, hyra përsëri me GitHub dhe rifreskova faqen me `⌘R`.
+Hapat: Hapa aplikacionin lokal, shtypa hyrjen me GitHub dhe u ktheva te `/panel`, ku u shfaqën përdoruesi dhe roli. Shtypa **Dil**, hyra përsëri me GitHub dhe rifreskova faqen me `⌘R` dhe te dhenat mbeten prap tmiat edhe pas rifreskimit .
 
 Rezultati: Pas hyrjes dhe përsëri pas rifreskimit, paneli shfaqi përdoruesin `eriszymeri321`, ID-në GitHub `246877188` dhe rolin `shofer`. Pas klikimit **Dil**, u ktheva te paneli dhe u shfaq butoni **Hyr me GitHub**, që tregon se sesioni u mbyll.
 
