@@ -1,6 +1,6 @@
 # Java 5 · Hyrja dhe kontrolli i lejeve
 
-Repository: [shto linkun e repository-t]
+Repository: https://github.com/eriszymeri321/rideshare-mobile
 
 ## Prova 1 · Sesioni
 
