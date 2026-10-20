@@ -7,6 +7,8 @@ export const authOptions: NextAuthOptions = {
   providers: [GitHubProvider({
     clientId: process.env.GITHUB_ID ?? "",
     clientSecret: process.env.GITHUB_SECRET ?? "",
+    // GitHub Apps use configured permissions, not OAuth scopes.
+    authorization: "https://github.com/login/oauth/authorize",
   })],
   session: { strategy: "jwt", maxAge: 2 * 60 * 60 },
   callbacks: {
