@@ -4,15 +4,21 @@ Repository: https://github.com/eriszymeri321/rideshare-mobile
 
 ## Prova 1 · Sesioni
 
-Rezultati: Hyrja me GitHub funksionoi. Paneli shfaqi përdoruesin `eriszymeri321`, ID-në GitHub `246877188` dhe rolin `shofer`. Sesioni u ruajt gjatë përdorimit të panelit. Dalja dhe hyrja përsëri nuk u verifikuan veçmas.
+Hapat: Hapa aplikacionin lokal, shtypa hyrjen me GitHub, autorizova aplikacionin dhe u ktheva te `/panel`.
+
+Rezultati: Paneli shfaqi përdoruesin `eriszymeri321`, ID-në GitHub `246877188` dhe rolin `shofer`. Hyrja dhe shfaqja e sesionit u verifikuan. Rifreskimi, dalja dhe hyrja përsëri nuk u provuan veçmas.
 
 ## Prova 2 · Ndryshimi i lejuar (ID 2)
 
-Rezultati: Me formularin e ID-së 2 u ruajt ora `08:25`; aplikacioni dha mesazhin e suksesit dhe Neon konfirmoi vlerën. Pastaj ora u rikthye në `08:15` dhe u verifikua përsëri në Neon.
+Hapat: Si përdorues me rolin `shofer`, vendosa `08:25` në formularin e panelit dhe shtypa **Ruaj orën**. Kontrollova rreshtin me ID 2 në Neon, pastaj e ktheva orën e tij në `08:15` dhe kontrollova rreshtin përsëri.
+
+Rezultati: Aplikacioni njoftoi suksesin; Neon tregoi ID 2 me orën `08:25` pas ruajtjes dhe `08:15` pas rikthimit. ID 1 mbeti në `08:00`.
 
 ## Prova 3 · Ndryshimi i refuzuar (ID 1)
 
-Rezultati: Në DevTools ndryshova ID-në e fshehur të formularit nga 2 në 1 dhe provova të ruaj orën `08:25`. Aplikacioni shfaqi mesazhin “Nuk ke leje për këtë udhëtim. Ora nuk ndryshoi.” Ora e udhëtimit me ID 1 mbeti `08:00` në Neon; udhëtimi im me ID 2 mbeti `08:15`.
+Hapat: Hapa Web Inspector → Console dhe ekzekutova `document.querySelector('input[name="id"]').value = "1"`. Ndryshova orën në `08:25`, shtypa **Ruaj orën** dhe kontrollova vlerat e udhëtimeve në Neon.
+
+Rezultati: Paneli shfaqi “Nuk ke leje për këtë udhëtim. Ora nuk ndryshoi.” ID 1 mbeti `08:00`, ndërsa udhëtimi im me ID 2 mbeti `08:15`.
 
 ## Çështje të hasura
 
