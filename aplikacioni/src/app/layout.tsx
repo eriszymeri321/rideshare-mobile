@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Pwa from "@/components/Pwa";
 
 export const metadata: Metadata = {
   title: "RideShare",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="sq">
-      <body>{children}</body>
+      <body><Pwa />{children}</body>
     </html>
   );
 }
