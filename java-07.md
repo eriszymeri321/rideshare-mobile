@@ -13,11 +13,13 @@ Kur Arta hap një udhëtim me vende të lira dhe zgjedh “Kërko vend”, ekran
 1. Te faqja e kërkesës, titulli “Simulim: Në pritje” mund të kuptohej si kërkesë e dërguar dhe në pritje të përgjigjes. Teksti poshtë tij thoshte se kërkesa nuk i dërgohet shoferit.
 2. Te detajet, veprimi “Kërko vend” mund të tingëllojë si rezervim i vërtetë. Ai hap një faqe demonstrative dhe nuk dërgon kërkesë te shoferi.
 
-## Ndryshimi i ri
+## Korrigjimi (arsyeja) / Ndryshimi i ri
 
 Skedari: aplikacioni/src/app/udhetimi/[id]/kerkesa/page.tsx
 
-Ky skedar lexon udhëtimin sipas ID-së dhe shfaq faqen demonstrative të kërkesës. Ndryshova titullin “Simulim: Në pritje” në “Kërkesë demonstrative”, që të mos sugjerojë se kërkesa është dërguar ose pret konfirmim. Paqartësia te etiketa “Kërko vend” mbeti si problemi i dytë i raportuar.
+**Korrigjimi (arsyeja):** Titulli “Simulim: Në pritje” mund të kuptohej si kërkesë e dërguar dhe në pritje të përgjigjes, ndaj e ndryshova në “Kërkesë demonstrative” që të bëhet e qartë se nuk ka dërgim ose konfirmim real.
+
+Ky skedar lexon udhëtimin sipas ID-së dhe shfaq faqen demonstrative të kërkesës. Paqartësia te etiketa “Kërko vend” mbeti si problemi i dytë i raportuar.
 
 ## Ndihma nga AI
 
