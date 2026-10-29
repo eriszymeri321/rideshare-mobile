@@ -27,7 +27,7 @@ export default async function Kerkesa({
       <Link href={`/udhetimi/${id}`}>← Kthehu te detajet</Link>
       {udhetim.vende > 0 ? (
         <>
-          <h1>Simulim: Në pritje</h1>
+          <h1>Kërkesë demonstrative</h1>
           <p>Kërkesa për {udhetim.nisja} nuk është dërguar te shoferi.</p>
           <p>Ruajtjen dhe konfirmimin real do t’i shtojmë më vonë.</p>
         </>
