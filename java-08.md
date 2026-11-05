@@ -54,7 +54,7 @@ Provat e ndërveprimit u kryen në `/java-08-test` në Chrome 116 headless me le
 
 `npm run lint`, `npm run build` dhe `git diff --check` kaluan. Provat e Chrome përdorën lokacion të simuluar. Nuk u provuan dy llogari GitHub, dy telefona, ndarja live mes shoferit/udhëtarit apo testi me koleg.
 
-Deploy-i në Vercel fillimisht nuk kishte variabla mjedisi dhe lista kthente 503. U shtua `DATABASE_URL` si Secret për Production dhe deployment-i i ri doli `Ready`; preview i tij shfaqi listën e udhëtimeve nga Neon. Faqja nuk u provua ende në telefon pas këtij redeploy-i.
+Më 2026-11-05 u kontrollua domeni publik `https://rideshare-mobile-one.vercel.app`: faqja kryesore, `/panel` dhe `/udhetimi/2` kthyen HTTP 200; `/api/udhetimet` ktheu HTTP 200 me listën e udhëtimeve; `/api/auth/providers` raportoi GitHub dhe callback-un `https://rideshare-mobile-one.vercel.app/api/auth/callback/github`. Endpoint-i privat i ndjekjes ktheu HTTP 401 pa sesion, siç pritet. Këto kontrolle vërtetojnë që deploy-i publik lidhet me databazën dhe njofton callback-un e prodhimit, por nuk provojnë hyrjen përfundimtare me GitHub, konfigurimin e dukshmërisë së GitHub App ose ndarjen live mes dy llogarive.
 
 Vendndodhja lexohet vetëm pas klikimit dhe shfaqet vetëm mes shoferit të lidhur dhe udhëtarëve të pranuar. Pozicionet ruhen në Neon. Harta OpenStreetMap ngarkohet vetëm pasi përdoruesi zgjedh ta hapë; atëherë OpenStreetMap merr zonën e përafërt të pikave. Secili mund ta ndalë ndarjen.
 
