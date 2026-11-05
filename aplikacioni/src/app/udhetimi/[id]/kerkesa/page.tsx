@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { gjejUdhetimin } from "@/lib/udhetimet";
+import { raportoGabiminNeon } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +12,12 @@ export default async function Kerkesa({
   let udhetim;
   try {
     udhetim = await gjejUdhetimin(id);
-  } catch {
+  } catch (error) {
+    const gabimi = raportoGabiminNeon("faqja e kërkesës", error);
     return (
       <main>
         <h1>RideShare</h1>
-        <p role="alert">Nuk u lidhëm me databazën. Provo përsëri.</p>
+        <p role="alert">{gabimi}</p>
         <Link href="/">← Kthehu te lista</Link>
       </main>
     );

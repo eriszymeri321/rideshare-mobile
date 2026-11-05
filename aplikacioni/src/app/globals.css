@@ -9,3 +9,12 @@ main { max-width: 720px; margin: auto; padding: 24px; }
   margin-top: 12px; padding: 8px 14px; border-radius: 8px;
   background: #3548d4; color: white; }
 .action:disabled { background: #39455b; color: #e4eaf4; cursor: default; }
+section { margin-top: 28px; padding-top: 20px; border-top: 1px solid #8090aa; }
+form { display: grid; gap: 10px; max-width: 480px; margin-top: 18px; }
+input { min-height: 44px; padding: 8px 12px; border: 1px solid #8090aa;
+  border-radius: 8px; background: #111b2d; color: #edf2fc; font: inherit; }
+button { font: inherit; cursor: pointer; }
+.location-map { position: relative; display: block; width: 100%; aspect-ratio: 600 / 340; margin: 16px 0; overflow: hidden; border: 1px solid #b9c6d6; border-radius: 14px; background: #e7edf5; }
+.location-map iframe, .location-map svg { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.location-map svg { pointer-events: none; }
+select { min-height: 40px; padding: 6px 10px; border: 1px solid #8090aa; border-radius: 8px; background: #111b2d; color: #edf2fc; font: inherit; }

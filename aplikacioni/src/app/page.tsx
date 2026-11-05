@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { KartaUdhetimi } from "@/components/KartaUdhetimi";
 import { lexoUdhetimet, type Udhetim } from "@/lib/udhetimet";
+import { raportoGabiminNeon } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -8,12 +9,13 @@ export default async function Home() {
   let udhetimet: Udhetim[];
   try {
     udhetimet = await lexoUdhetimet();
-  } catch {
+  } catch (error) {
+    const gabimi = raportoGabiminNeon("lista e udhëtimeve", error);
     return (
       <main>
         <h1>RideShare</h1>
         <p><Link href="/panel">Hyr / Paneli im</Link></p>
-        <p role="alert">Nuk u lidhëm me databazën. Provo përsëri.</p>
+        <p role="alert">{gabimi}</p>
         <Link className="action" href="/">Provo përsëri</Link>
       </main>
     );

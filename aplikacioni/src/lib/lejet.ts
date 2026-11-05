@@ -28,3 +28,12 @@ export async function ndryshoOren(id: string, ora: string) {
     RETURNING id`;
   return rows.length === 1 ? "ruajtur" : "ndaluar";
 }
+
+export async function caktoRolin(roli: string) {
+  const p = await profiliIm();
+  if (!p) return "hyr";
+  if (roli !== "udhetar" && roli !== "shofer") return "fushe";
+  const sql = getSql();
+  await sql`UPDATE profilet SET roli = ${roli} WHERE github_id = ${p.id}`;
+  return "ruajtur";
+}

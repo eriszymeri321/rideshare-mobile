@@ -1,0 +1,31 @@
+{
+  "week": 8,
+  "scope": "local-demo-test-only",
+  "project": "rideshare-mobile",
+  "testPage": "/java-08-test",
+  "component": "aplikacioni/src/components/PikaNisjes.tsx",
+  "testIds": {
+    "widget": "pickup-widget",
+    "manualInput": "pickup-input",
+    "confirmButton": "confirm-pickup",
+    "locationButton": "request-location",
+    "loading": "pickup-loading",
+    "message": "pickup-message",
+    "confirmedPickup": "confirmed-pickup",
+    "accuracy": "location-accuracy",
+    "timeoutSimulation": "simulate-timeout"
+  },
+  "scenarios": [
+    "manual-confirmation",
+    "blank-manual-input",
+    "location-permission-granted",
+    "location-permission-denied",
+    "location-unavailable",
+    "location-timeout",
+    "geolocation-unsupported"
+  ],
+  "privacy": {
+    "coordinatesSentToServer": false,
+    "pickupSavedAcrossRefresh": false
+  }
+}

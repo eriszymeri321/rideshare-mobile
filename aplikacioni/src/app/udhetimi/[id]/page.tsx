@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { gjejUdhetimin } from "@/lib/udhetimet";
+import { NdjekjaVendndodhjes } from "@/components/NdjekjaVendndodhjes";
+import { raportoGabiminNeon } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +13,12 @@ export default async function Detajet({
   let udhetim;
   try {
     udhetim = await gjejUdhetimin(id);
-  } catch {
+  } catch (error) {
+    const gabimi = raportoGabiminNeon("detajet e udhëtimit", error);
     return (
       <main>
         <h1>RideShare</h1>
-        <p role="alert">Nuk u lidhëm me databazën. Provo përsëri.</p>
+        <p role="alert">{gabimi}</p>
         <Link href="/">← Kthehu te lista</Link>
       </main>
     );
@@ -29,6 +32,7 @@ export default async function Detajet({
       <p>Ora: {udhetim.ora}</p>
       <p>Vendtakimi: {udhetim.vendtakimi}</p>
       <p>Vende të lira: {udhetim.vende}</p>
+      <NdjekjaVendndodhjes udhetimId={id} vende={udhetim.vende} />
       {udhetim.vende > 0 ? (
         <Link className="action" href={`/udhetimi/${id}/kerkesa`}>
           Kërko vend
