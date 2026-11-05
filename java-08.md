@@ -40,15 +40,15 @@ Provat e ndërveprimit u kryen në `/java-08-test` në Chrome 116 headless me le
 
 ### Prova me një hyrje të re
 
-**Hyrja që provova:** Konfirmova “Biblioteka”, pastaj shkrova vetëm hapësira dhe shtypa “Konfirmo në telefon”. Më pas shkrova “Parkingu” pa e konfirmuar.
+Hyrja që provova: Më 2026-11-05 hapa aplikacionin lokalisht te `/java-08-test`, shkrova “Kafe Teatri” dhe shtypa “Konfirmo në telefon”. Pastaj provova hyrjen bosh me hapësira dhe ndryshova fushën në “Parkingu” pa e konfirmuar.
 
-**Parashikimi im para klikimit:** Teksti bosh pas `trim()` nuk do të pranohet; “Biblioteka” do të mbetet vendtakimi i konfirmuar si kur fusha përmban hapësira, ashtu edhe kur ndryshohet pa konfirmim.
+Parashikimi im para klikimit: “Kafe Teatri” do të bëhet vendtakimi i konfirmuar; hapësirat nuk do të pranohen dhe teksti i ri “Parkingu” nuk do ta ndryshojë vendtakimin pa konfirmim.
 
-**Çfarë pashë realisht:** Pas hyrjes me hapësira u shfaq “Shkruaj vendtakimin para se ta konfirmosh.” dhe vendtakimi mbeti “Biblioteka”. Pas ndryshimit në “Parkingu” pa klikim, vendtakimi i konfirmuar vazhdoi të ishte “Biblioteka”.
+Çfarë pashë realisht: Aplikacioni shfaqi “Vendtakimi u konfirmua vetëm në këtë pajisje.” dhe “Vendtakimi i konfirmuar: Kafe Teatri”. Pas provës me hapësira shfaqi “Shkruaj vendtakimin para se ta konfirmosh.” dhe mbajti “Kafe Teatri”. Kur shkrova “Parkingu” pa e konfirmuar, vendtakimi i konfirmuar përsëri mbeti “Kafe Teatri”.
 
-**Skedari dhe funksioni që e shpjegojnë:** `aplikacioni/src/components/PikaNisjes.tsx`, funksioni `konfirmo`; `teksti` dhe `vendtakimi` mbahen në state të veçanta, ndërsa `trim()` kontrollon tekstin bosh.
+Skedari dhe funksioni që e shpjegojnë: `aplikacioni/src/components/PikaNisjes.tsx`, funksioni `konfirmo`; `teksti` është draft, `vendtakimi` ruan vlerën e konfirmuar dhe `trim()` refuzon tekstin bosh.
 
-**Çfarë kuptova ose korrigjova:** Teksti në fushë është draft; vetëm klikimi e ndryshon vendtakimin e konfirmuar. Hyrja me hapësira nuk duhet të fshijë zgjedhjen e mëparshme.
+Çfarë kuptova ose korrigjova: E provova rrjedhën në faqen e aplikacionit, jo vetëm duke e përshkruar kodin. Vetëm një hyrje jo bosh e konfirmuar me buton ndryshon vendtakimin; drafti i pakonfirmuar nuk e ndryshon atë.
 
 ## Kontrolle teknike dhe kufizime
 
