@@ -1,61 +1,62 @@
-# RideShare · Java 8 · Vendtakimi dhe vendndodhja live
+# RideShare — Java 8
 
-## Çfarë u ndërtua
+## Çfarë ndërtova
 
-- `aplikacioni/src/components/PikaNisjes.tsx` zbaton zgjedhjen manuale dhe demonstrimin lokal të lejes së vendndodhjes.
-- `aplikacioni/src/components/NdjekjaVendndodhjes.tsx` zbaton kërkesën e udhëtarit, pranimin/refuzimin nga shoferi, ndarjen live dhe hartën.
-- `aplikacioni/src/app/udhetimi/[id]/page.tsx` shfaq ndjekjen live te detajet e udhëtimit.
-- `aplikacioni/src/app/api/udhetimet/[id]/ndjekja/route.ts` kontrollon sesionin, pronësinë dhe pranimin para ruajtjes/leximit të koordinatave.
-- `aplikacioni/src/app/panel/page.tsx` lejon zgjedhjen e rolit; shoferi mund ta lidhë profilin e vet me një udhëtim të lirë.
-- `aplikacioni/src/app/java-08-test/page.tsx` është faqe prove lokale që nuk kërkon Neon ose hyrje.
-- `aplikacioni/schema-java08.sql` shton tabelat e kërkesave dhe vendndodhjeve. Migrimi u ekzekutua në databazën e konfiguruar lokalisht.
+Te detajet e udhëtimit vendosa të njëjtin komponent `PikaNisjes` që përdoret edhe në faqen `/java-08-test`. Arta mund të shkruajë dhe të konfirmojë një vendtakim ose, vetëm pas klikimit, t’i kërkojë shfletuesit vendndodhjen. Kjo zgjedhje lokale nuk dërgohet te shoferi dhe humbet pas rifreskimit. Ndarja live me shoferin është veçori shtesë e projektit, jashtë hapit të sotëm.
 
-## Provat
+## Provat që bëra
 
-Provat e ndërveprimit u kryen në `/java-08-test` në Chrome 116 headless me leje dhe koordinata të simuluara në DevTools. Nuk u përdor vendndodhje reale.
+Provat u kryen lokalisht në Chrome me vendndodhje të simuluar. Nuk u përdor GPS ose adresë reale.
 
-### Prova 1
+### Prova 1: Leja nuk kërkohet sapo hapet faqja.
 
-**Hapat:** Hapa `http://127.0.0.1:3000/java-08-test` në Chrome. Para klikimit lexova gjendjen e lejes me Permissions API. Pastaj lejova geolocation në DevTools, vendosa koordinata fiktive dhe shtypa “Përdor vendndodhjen time”.
+**Hapat:** Hapa `http://127.0.0.1:3000/java-08-test` dhe kontrollova gjendjen fillestare. Në mjedisin lokal të provës vendosa zëvendësuesin e geolocation-it pa e thirrur në render; pastaj klikova “Përdor vendndodhjen time” dhe i dhashë komponentit pozicion prove.
 
-**Pritshmëria:** Faqja të mos kërkojë leje gjatë hapjes; gjendja të jetë `prompt` derisa të shtypet butoni. Pas klikimit, suksesi të përfundojë pritjen dhe të tregojë saktësinë.
+**Pritshmëria:** Faqja të hapet pa kërkuar leje; klikimi ta nisë kërkesën dhe suksesi të tregojë saktësinë.
 
-**Vëzhgimi real:** Para klikimit gjendja ishte `prompt`. Pas klikimit u shfaq “Pozicioni u mor.” dhe “Saktësia rreth 25 m”. Komponenti i vendtakimit nuk dërgoi koordinata; layout-i i aplikacionit bëri veçmas kërkesën publike `/api/udhetimet` për cache-in offline. Prova kaloi me vendndodhje të simuluar, jo me GPS real.
+**Vëzhgimi:** Para klikimit gjendja e komponentit ishte `idle`; leximi i geolocation-it nuk niset në render. Pas klikimit, me saktësi prove 37 m, u shfaq “Pozicioni u mor.”, “Saktësia rreth 37 m” dhe gjendja `success`. Me zëvendësuesin lokal nuk u shfaq dialog i sistemit për leje, prandaj kjo provë nuk pretendon se klikimi real i GPS-it u lejua në pajisje.
 
-### Prova 2
+### Prova 2: Refuzimi i lejes nuk e bllokon përdoruesin.
 
-**Hapat:** Në Chrome vendosa lejen e geolocation në `denied` për faqen, e hapa dhe shtypa butonin e vendndodhjes. Në një provë tjetër të së njëjtës faqe demonstrative shkrova “Parkingu” dhe e konfirmova. Pastaj shtypa “Simulo timeout-in”.
+**Hapat:** Vendosa lejen e vendndodhjes në `denied`, rifreskova faqen dhe klikova butonin. Pastaj shkrova “Parkingu” dhe e konfirmova. Në provë tjetër simulova gabimin e skadimit me kodin 3.
 
-**Pritshmëria:** Refuzimi të mos bllokojë formularin manual; vendtakimi i shkruar të konfirmohet. Simulimi i timeout-it të mbyllë pritjen dhe të lejojë vazhdimin manual.
+**Pritshmëria:** Refuzimi dhe skadimi ta përfundojnë pritjen; fusha manuale të mbetet e përdorshme.
 
-**Vëzhgimi real:** Pas refuzimit u shfaq “Leja u refuzua. Shkruaj vendtakimin vetë.” Në provën manuale u shfaq “Vendtakimi i konfirmuar: Parkingu”. Simulimi shfaqi “Koha mbaroi. Provo sërish ose shkruaj vendtakimin vetë.” Nuk provova timeout të vërtetë në pajisje.
+**Vëzhgimi:** Simulimi i kodit 1 shfaqi “Leja u refuzua. Shkruaj vendtakimin vetë.” me gjendjen `denied`; “Parkingu” u konfirmua manualisht. Kodi 3 shfaqi mesazhin e skadimit me gjendjen `timeout`; kodi 2 kaloi në `unavailable`. Në të tri rastet pritja mbaroi dhe butoni u bë përsëri i përdorshëm. Nuk provova refuzim ose timeout real të pajisjes.
 
-### Prova 3
+### Prova 3: Dëshmitë në GitHub nuk tregojnë adresën time reale.
 
-**Hapat:** Kontrollova skedarët që hyjnë në dorëzim me `git ls-files` për skedarë `.env`; skanova `java-08.md` dhe `mobile-week08.json` për URL databaze dhe koordinata me saktësi të lartë. Koordinatat e përdorura në Chrome ishin fiktive dhe nuk u shkruan në raport.
+**Hapat:** Kontrollova skedarët e dorëzimit për skedarë `.env`, URL të databazës dhe koordinata të sakta; përdora vetëm koordinata prove në shfletues.
 
-**Pritshmëria:** Asnjë skedar `.env`, URL/sekret databaze ose koordinatë reale të mos përfshihet në dokumentet e dorëzimit.
+**Pritshmëria:** Skedarët e publikuar të mos përmbajnë sekrete, adresë ose koordinata personale.
 
-**Vëzhgimi real:** Kontrolli gjeti 0 skedarë `.env` të gjurmuar, 0 koordinata të sakta dhe 0 URL databaze në dy dokumentet e skanuara. Kjo është kontroll i këtyre skedarëve dhe modeleve, jo audit i përgjithshëm i çdo sekreti të mundshëm.
+**Vëzhgimi:** Kontrolli gjeti 0 skedarë `.env` të gjurmuar, 0 URL databaze në raport/konfigurimin e testit dhe asnjë koordinatë reale të shkruar në to. Ky kontroll vlen vetëm për skedarët dhe modelet e skanuara, jo si audit i përgjithshëm i çdo sekreti.
 
-### Prova me një hyrje të re
+## Ku gjendet puna
 
-Hyrja që provova: Më 2026-11-05 hapa aplikacionin lokalisht te `/java-08-test`, shkrova “Kafe Teatri” dhe shtypa “Konfirmo në telefon”. Pastaj provova hyrjen bosh me hapësira dhe ndryshova fushën në “Parkingu” pa e konfirmuar.
+- Komponenti: `aplikacioni/src/components/PikaNisjes.tsx`.
+- Detajet e udhëtimit: `aplikacioni/src/app/udhetimi/[id]/page.tsx`.
+- Faqja automatike lokale: `aplikacioni/src/app/java-08-test/page.tsx`.
+- Konfigurimi i testit: `mobile-week08.json`, me `version: 1` dhe `path: /java-08-test`.
+- Varësitë dhe lockfile: `aplikacioni/package.json` dhe `aplikacioni/package-lock.json`.
+- Repository: https://github.com/eriszymeri321/rideshare-mobile
 
-Parashikimi im para klikimit: “Kafe Teatri” do të bëhet vendtakimi i konfirmuar; hapësirat nuk do të pranohen dhe teksti i ri “Parkingu” nuk do ta ndryshojë vendtakimin pa konfirmim.
+## Çfarë mbetet për përmirësim
 
-Çfarë pashë realisht: Aplikacioni shfaqi “Vendtakimi u konfirmua vetëm në këtë pajisje.” dhe “Vendtakimi i konfirmuar: Kafe Teatri”. Pas provës me hapësira shfaqi “Shkruaj vendtakimin para se ta konfirmosh.” dhe mbajti “Kafe Teatri”. Kur shkrova “Parkingu” pa e konfirmuar, vendtakimi i konfirmuar përsëri mbeti “Kafe Teatri”.
+Vendtakimi manual dhe rezultati i geolocation-it ruhen vetëm në gjendjen lokale të faqes; rifreskimi i humb dhe shoferi nuk i merr. Kjo është jashtë qëllimit të ushtrimit të sotëm. Ndarja live është funksion shtesë; lidhja e një udhëtimi në Production duhet të përdoret vetëm kur ai udhëtim është i lirë ose i lidhur me shoferin e kyçur.
 
-Skedari dhe funksioni që e shpjegojnë: `aplikacioni/src/components/PikaNisjes.tsx`, funksioni `konfirmo`; `teksti` është draft, `vendtakimi` ruan vlerën e konfirmuar dhe `trim()` refuzon tekstin bosh.
+## Ndihma nga AI (Artificial Intelligence – inteligjencë artificiale)
 
-Çfarë kuptova ose korrigjova: E provova rrjedhën në faqen e aplikacionit, jo vetëm duke e përshkruar kodin. Vetëm një hyrje jo bosh e konfirmuar me buton ndryshon vendtakimin; drafti i pakonfirmuar nuk e ndryshon atë.
+AI ndihmoi në rishikimin e kërkesave, gjetjen e mospërputhjes së etiketave të testit dhe përditësimin e komponentit. E verifikova vetë duke hapur faqen lokale, duke provuar konfirmimin manual dhe duke simuluar suksesin, refuzimin, skadimin dhe mungesën e mbështetjes. Nuk përdora koordinata reale.
 
-## Kontrolle teknike dhe kufizime
+## Prova me një hyrje të re
 
-`npm run lint`, `npm run build` dhe `git diff --check` kaluan. Provat e Chrome përdorën lokacion të simuluar. Nuk u provuan dy llogari GitHub, dy telefona, ndarja live mes shoferit/udhëtarit apo testi me koleg.
+- Hyrja që provova: Shkrova “Biblioteka” dhe konfirmova. Ndryshova draftin në “Parkingu” pa e konfirmuar, provova tekst vetëm me hapësira dhe në fund konfirmova “Kafe Teatri”.
+- Parashikimi im para klikimit: “Biblioteka” do të mbetet e konfirmuar kur shkruaj “Parkingu” pa e konfirmuar; hapësirat do të refuzohen; konfirmimi i “Kafe Teatri” do ta zëvendësojë vendtakimin.
+- Çfarë pashë realisht: “Biblioteka” u shfaq si vendtakim i konfirmuar. Drafti “Parkingu” pa konfirmim nuk e ndryshoi. Hapësirat shfaqën “Shkruaj vendtakimin para se ta konfirmosh.” dhe vendtakimi mbeti “Biblioteka”. Pas konfirmimit të ri u shfaq “Vendtakimi i konfirmuar: Kafe Teatri”.
+- Skedari dhe funksioni që e shpjegojnë: `aplikacioni/src/components/PikaNisjes.tsx`, funksioni `konfirmo`; `teksti` është draft, `vendtakimi` është zgjedhja e konfirmuar dhe `trim()` refuzon tekstin bosh.
+- Çfarë kuptova ose korrigjova: Shkrimi nuk e ndryshon zgjedhjen; vetëm konfirmimi i një teksti jo bosh e ndryshon. Prova automatike nuk vërteton provë me koleg.
 
-Më 2026-11-05 u kontrollua domeni publik `https://rideshare-mobile-one.vercel.app`: faqja kryesore, `/panel` dhe `/udhetimi/2` kthyen HTTP 200; `/api/udhetimet` ktheu HTTP 200 me listën e udhëtimeve; `/api/auth/providers` raportoi GitHub dhe callback-un `https://rideshare-mobile-one.vercel.app/api/auth/callback/github`. Endpoint-i privat i ndjekjes ktheu HTTP 401 pa sesion, siç pritet. Këto kontrolle vërtetojnë që deploy-i publik lidhet me databazën dhe njofton callback-un e prodhimit, por nuk provojnë hyrjen përfundimtare me GitHub, konfigurimin e dukshmërisë së GitHub App ose ndarjen live mes dy llogarive.
+## Kufizimet e verifikimit
 
-Vendndodhja lexohet vetëm pas klikimit dhe shfaqet vetëm mes shoferit të lidhur dhe udhëtarëve të pranuar. Pozicionet ruhen në Neon. Harta OpenStreetMap ngarkohet vetëm pasi përdoruesi zgjedh ta hapë; atëherë OpenStreetMap merr zonën e përafërt të pikave. Secili mund ta ndalë ndarjen.
-
-AI ndihmoi në implementim dhe shqyrtim. Prova me koleg nuk u realizua; nuk pretendohet si e kryer.
+Provat automatike kontrollojnë sjelljet e faqes së provës; ato nuk vërtetojnë GPS real, lidhjen me Neon, sigurinë e gjithë aplikacionit, ndarjen live mes dy personave apo autorësinë. Testi zyrtar i javës 8 duhet të ekzekutohet përsëri mbi këtë commit në Issue-in ekzistues.

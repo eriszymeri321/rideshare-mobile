@@ -3,104 +3,93 @@
 import { useState, type FormEvent } from "react";
 
 type PikaNisjesProps = { demo?: boolean };
+type GjendjaLokacionit = "idle" | "loading" | "success" | "denied" | "timeout" | "unavailable";
 
 export function PikaNisjes({ demo = false }: PikaNisjesProps) {
   const [teksti, setTeksti] = useState("");
   const [vendtakimi, setVendtakimi] = useState("");
-  const [poKerkoj, setPoKerkoj] = useState(false);
-  const [mesazhi, setMesazhi] = useState("");
+  const [gabimiTakimit, setGabimiTakimit] = useState("");
+  const [gjendja, setGjendja] = useState<GjendjaLokacionit>("idle");
+  const [mesazhiLokacionit, setMesazhiLokacionit] = useState("");
   const [saktesia, setSaktesia] = useState<number | null>(null);
 
   function konfirmo(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const vendiPastruar = teksti.trim();
     if (!vendiPastruar) {
-      setMesazhi("Shkruaj vendtakimin para se ta konfirmosh.");
+      setGabimiTakimit("Shkruaj vendtakimin para se ta konfirmosh.");
       return;
     }
     setVendtakimi(vendiPastruar);
-    setSaktesia(null);
-    setMesazhi("Vendtakimi u konfirmua vetëm në këtë pajisje.");
+    setGabimiTakimit("");
+  }
+
+  function perfundoLeximin(gjendjeERe: GjendjaLokacionit, mesazh: string, metra?: number) {
+    setGjendja(gjendjeERe);
+    setMesazhiLokacionit(mesazh);
+    setSaktesia(gjendjeERe === "success" && metra !== undefined ? metra : null);
+  }
+
+  function deshtoiLeximi(error: Pick<GeolocationPositionError, "code">) {
+    if (error.code === 1) {
+      perfundoLeximin("denied", "Leja u refuzua. Shkruaj vendtakimin vetë.");
+    } else if (error.code === 3) {
+      perfundoLeximin("timeout", "Koha mbaroi. Provo sërish ose shkruaj vendtakimin vetë.");
+    } else {
+      perfundoLeximin("unavailable", "Pozicioni nuk është i disponueshëm. Shkruaj vendtakimin vetë.");
+    }
   }
 
   function kerkoVendndodhjen() {
-    setSaktesia(null);
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setPoKerkoj(false);
-      setMesazhi("Ky shfletues nuk e mbështet vendndodhjen. Shkruaj vendtakimin vetë.");
+      perfundoLeximin("unavailable", "Ky shfletues nuk e mbështet vendndodhjen. Shkruaj vendtakimin vetë.");
       return;
     }
 
-    setPoKerkoj(true);
-    setMesazhi("Po kërkojmë vendndodhjen…");
+    setGjendja("loading");
+    setMesazhiLokacionit("Po kërkojmë vendndodhjen…");
+    setSaktesia(null);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const metra = Math.round(position.coords.accuracy);
-        perfundoLeximin(true, "Pozicioni u mor.", metra);
-      },
-      (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
-          perfundoLeximin(false, "Leja u refuzua. Shkruaj vendtakimin vetë.");
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          perfundoLeximin(false, "Pozicioni nuk është i disponueshëm. Shkruaj vendtakimin vetë.");
-        } else {
-          perfundoLeximin(false, "Koha mbaroi. Provo sërish ose shkruaj vendtakimin vetë.");
-        }
-      },
+      (position) => perfundoLeximin("success", "Pozicioni u mor.", Math.round(position.coords.accuracy)),
+      deshtoiLeximi,
       { timeout: 10000 },
     );
-  }
-
-  function perfundoLeximin(meSukses: boolean, mesazh: string, metra?: number) {
-    setPoKerkoj(false);
-    setMesazhi(mesazh);
-    if (meSukses && metra !== undefined) {
-      setSaktesia(metra);
-    }
-  }
-
-  function simuloTimeout() {
-    setSaktesia(null);
-    perfundoLeximin(false, "Koha mbaroi. Provo sërish ose shkruaj vendtakimin vetë.");
   }
 
   return (
     <section aria-labelledby="pika-nisjes-titull" data-testid="pickup-widget">
       <h2 id="pika-nisjes-titull">Vendtakimi</h2>
-      <p>Konfirmimi ruhet vetëm në këtë faqe. Dritoni nuk e sheh dhe faqja nuk e dërgon te serveri.</p>
+      <p>Vendtakimi i konfirmuar ruhet vetëm në këtë faqe; nuk dërgohet te shoferi.</p>
       <form onSubmit={konfirmo}>
-        <label htmlFor={demo ? "vendtakimi-demo" : "vendtakimi"}>Shkruaj vendtakimin</label>
+        <label htmlFor="meeting-input">Shkruaj vendtakimin</label>
         <input
-          id={demo ? "vendtakimi-demo" : "vendtakimi"}
-          data-testid="pickup-input"
+          id="meeting-input"
+          data-testid="meeting-input"
           name="vendtakimi"
           value={teksti}
           onChange={(event) => setTeksti(event.target.value)}
-          placeholder="p.sh. Biblioteka (vend fiktiv)"
+          placeholder="p.sh. Biblioteka"
         />
-        <button className="action" type="submit" data-testid="confirm-pickup">Konfirmo në telefon</button>
+        <button className="action" type="submit" data-testid="confirm-meeting">Konfirmo në telefon</button>
       </form>
+      <p role="alert" data-testid="meeting-error">{gabimiTakimit}</p>
+      <p data-testid="confirmed-meeting">
+        {vendtakimi && <><strong>Vendtakimi i konfirmuar:</strong> {vendtakimi}</>}
+      </p>
       <button
         className="action"
         type="button"
         onClick={kerkoVendndodhjen}
-        disabled={poKerkoj}
-        data-testid="request-location"
+        disabled={gjendja === "loading"}
+        data-testid="locate-me"
       >
-        Përdor vendndodhjen time
+        {gjendja === "loading" ? "Po kërkojmë vendndodhjen…" : "Përdor vendndodhjen time"}
       </button>
-      {demo && (
-        <button className="action" type="button" onClick={simuloTimeout} data-testid="simulate-timeout">
-          Simulo timeout-in
-        </button>
-      )}
-      {poKerkoj && <p role="status" data-testid="pickup-loading">Po kërkojmë vendndodhjen…</p>}
-      {mesazhi && <p role="status" data-testid="pickup-message">{mesazhi}</p>}
-      {vendtakimi && (
-        <p data-testid="confirmed-pickup"><strong>Vendtakimi i konfirmuar:</strong> {vendtakimi}</p>
-      )}
-      {saktesia !== null && <p data-testid="location-accuracy">Saktësia rreth {saktesia} m</p>}
-      {demo && <p>Simulim për klasë · mos përdor vendndodhje të vërtetë në të dhënat e raportit.</p>}
+      <p role="status" data-testid="location-status" data-state={gjendja}>{mesazhiLokacionit}</p>
+      <p data-testid="location-accuracy">
+        {saktesia !== null ? <>Saktësia rreth {saktesia} m</> : ""}
+      </p>
+      {demo && <p>Prova lokale · vendtakimi dhe vendndodhja nuk dërgohen te serveri.</p>}
     </section>
   );
 }

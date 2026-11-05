@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { gjejUdhetimin } from "@/lib/udhetimet";
+import { PikaNisjes } from "@/components/PikaNisjes";
 import { NdjekjaVendndodhjes } from "@/components/NdjekjaVendndodhjes";
 import { raportoGabiminNeon } from "@/lib/db";
 
@@ -32,6 +33,7 @@ export default async function Detajet({
       <p>Ora: {udhetim.ora}</p>
       <p>Vendtakimi: {udhetim.vendtakimi}</p>
       <p>Vende të lira: {udhetim.vende}</p>
+      <PikaNisjes />
       <NdjekjaVendndodhjes udhetimId={id} vende={udhetim.vende} />
       {udhetim.vende > 0 ? (
         <Link className="action" href={`/udhetimi/${id}/kerkesa`}>

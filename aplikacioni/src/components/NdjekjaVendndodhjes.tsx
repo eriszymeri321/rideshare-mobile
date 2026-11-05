@@ -14,6 +14,7 @@ type Pozicioni = {
 };
 type TeDhena = {
   viewer: { emri: string; roli: "shofer" | "udhetar"; eshteShofer: boolean };
+  kaShoferTjeter: boolean;
   statusKerkese: string | null;
   kerkesatNePritje: { id: number; emri: string }[];
   pozicionet: Pozicioni[];
@@ -160,7 +161,9 @@ export function NdjekjaVendndodhjes({ udhetimId, vende }: { udhetimId: string; v
       <h2 id="ndjekja-titull">Vendndodhja live e udhëtimit</h2>
       <p>Kërkesa dhe koordinatat janë private për shoferin dhe udhëtarët e pranuar. Ndarja fiket nga secili person kur të dojë.</p>
       {teDhena.viewer.roli === "shofer" && !teDhena.viewer.eshteShofer && (
-        <><p>Ky udhëtim nuk ka ende shofer të lidhur.</p><button className="action" onClick={merrUdhetimin}>Lidhe këtë udhëtim me profilin tim</button></>
+        teDhena.kaShoferTjeter
+          ? <p role="status">Ky udhëtim është tashmë i lidhur me një shofer tjetër. Zgjidh një udhëtim pa shofer për ta lidhur me profilin tënd.</p>
+          : <><p>Ky udhëtim nuk ka ende shofer të lidhur.</p><button className="action" onClick={merrUdhetimin}>Lidhe këtë udhëtim me profilin tim</button></>
       )}
       {teDhena.viewer.roli === "udhetar" && teDhena.viewer.eshteShofer && <p>Ky udhëtim është i lidhur me profilin tënd si shofer.</p>}
       {!teDhena.viewer.eshteShofer && teDhena.viewer.roli === "udhetar" && !teDhena.statusKerkese && (

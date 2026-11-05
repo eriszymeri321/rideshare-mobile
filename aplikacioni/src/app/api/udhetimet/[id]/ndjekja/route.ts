@@ -49,6 +49,7 @@ export async function GET(_request: Request, { params }: Context) {
     const eNdaj = pozicionet.some((p) => p.id === ctx.profili.id);
     return Response.json({
       viewer: { emri: ctx.profili.emri, roli: ctx.profili.roli, eshteShofer },
+      kaShoferTjeter: Boolean(ctx.udhetimi.shofer_id && !eshteShofer),
       statusKerkese: ctx.kerkesa?.status ?? null,
       kerkesatNePritje,
       pozicionet,
