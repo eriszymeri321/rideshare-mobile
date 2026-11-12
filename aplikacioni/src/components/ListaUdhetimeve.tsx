@@ -43,7 +43,9 @@ export function ListaUdhetimeve({ udhetimet, preferuarat, numri, authenticated }
   }
 
   return <>
-    <p aria-live="polite">Të preferuarat <strong>{total}</strong>{mesazhi && ` · ${mesazhi}`}</p>
+    <p aria-live="polite">Të preferuarat <strong>{total}</strong>{" "}
+      {authenticated && <Link href="/preferuarat">Shiko udhëtimet favorite</Link>}
+      {mesazhi && ` · ${mesazhi}`}</p>
     <div className="trip-list">
       {udhetimet.map((udhetim) => {
         const saved = ids.has(udhetim.id);
