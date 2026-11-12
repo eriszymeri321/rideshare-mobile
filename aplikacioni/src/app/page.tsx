@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { KartaUdhetimi } from "@/components/KartaUdhetimi";
 import { lexoUdhetimet, type Udhetim } from "@/lib/udhetimet";
 import { raportoGabiminNeon } from "@/lib/db";
+import { profiliIm } from "@/lib/lejet";
+import { getSql } from "@/lib/db";
+import { ListaUdhetimeve } from "@/components/ListaUdhetimeve";
 
 export const dynamic = "force-dynamic";
 
@@ -29,12 +31,27 @@ export default async function Home() {
       {udhetimet.length === 0 ? (
         <p>Nuk ka udhëtime për momentin.</p>
       ) : (
-        <div className="trip-list">
-          {udhetimet.map((udhetim) => (
-            <KartaUdhetimi key={udhetim.id} udhetim={udhetim} />
-          ))}
-        </div>
+        <ListaMePreferime udhetimet={udhetimet} />
       )}
     </main>
   );
+}
+
+async function ListaMePreferime({ udhetimet }: { udhetimet: Udhetim[] }) {
+  let ids: string[] = [];
+  let count = 0;
+  let authenticated = false;
+  try {
+    const profili = await profiliIm();
+    if (profili) {
+      authenticated = true;
+      const sql = getSql();
+      const rows = await sql`SELECT udhetim_id FROM udhetimet_preferuara WHERE github_id = ${profili.id}`;
+      ids = rows.map((row) => String(row.udhetim_id));
+      count = ids.length;
+    }
+  } catch {
+    // Faqja e udhëtimeve mbetet e përdorshme edhe kur preferimet s'mund të lexohen.
+  }
+  return <ListaUdhetimeve udhetimet={udhetimet} preferuarat={ids} numri={count} authenticated={authenticated} />;
 }
