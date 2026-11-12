@@ -2,6 +2,7 @@ import Link from "next/link";
 import { profiliIm } from "@/lib/lejet";
 import { getSql } from "@/lib/db";
 import type { Udhetim } from "@/lib/udhetimet";
+import { ListaPreferuarave } from "@/components/ListaPreferuarave";
 
 export const dynamic = "force-dynamic";
 
@@ -39,13 +40,7 @@ export default async function Preferuarat() {
   return <main>
     <h1>Udhëtimet e mia favorite</h1>
     {udhetimet.length === 0 ? <p>Nuk ke ruajtur ende asnjë udhëtim si favorit.</p> :
-      <div className="trip-list">
-        {udhetimet.map((udhetim) => <article className="trip-card" key={udhetim.id}>
-          <h2>{udhetim.nisja} – {udhetim.destinacioni}</h2>
-          <p>Ora: {udhetim.ora} · Vende të lira: {udhetim.vende}</p>
-          <Link className="action" href={`/udhetimi/${udhetim.id}`}>Shiko detajet</Link>
-        </article>)}
-      </div>}
+      <ListaPreferuarave udhetimet={udhetimet} />}
     <p><Link href="/">Kthehu te udhëtimet</Link></p>
   </main>;
 }

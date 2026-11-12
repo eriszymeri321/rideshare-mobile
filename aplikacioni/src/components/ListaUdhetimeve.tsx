@@ -14,28 +14,35 @@ export function ListaUdhetimeve({ udhetimet, preferuarat, numri, authenticated }
   const [mesazhi, setMesazhi] = useState("");
   const pendingRef = useRef(new Set<string>());
 
-  async function ruaj(id: string) {
-    if (pendingRef.current.has(id) || idsRef.current.has(id)) return;
+  function caktoStatusin(id: string, saved: boolean) {
+    const kishte = idsRef.current.has(id);
+    if (kishte === saved) return;
+    const next = new Set(idsRef.current);
+    if (saved) next.add(id);
+    else next.delete(id);
+    idsRef.current = next;
+    setIds(next);
+    setTotal((value) => Math.max(0, value + (saved ? 1 : -1)));
+  }
+
+  async function ndryshoPreferimin(id: string) {
+    if (pendingRef.current.has(id)) return;
+    const wasSaved = idsRef.current.has(id);
+    const saved = !wasSaved;
     pendingRef.current.add(id);
-    const optimistic = new Set(idsRef.current).add(id);
-    idsRef.current = optimistic;
-    setIds(optimistic);
-    setTotal((value) => value + 1);
+    caktoStatusin(id, saved);
     setPending((value) => new Set(value).add(id));
-    setMesazhi("Po ruhet preferimi…");
+    setMesazhi(saved ? "Po ruhet preferimi…" : "Po hiqet nga të preferuarat…");
     try {
       const response = await fetch(`/api/udhetimet/${encodeURIComponent(id)}/preferuar`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+        method: saved ? "POST" : "DELETE",
+        ...(saved ? { headers: { "Content-Type": "application/json" }, body: "{}" } : {}),
       });
-      if (!response.ok) throw new Error("Ruajtja dështoi");
-      setMesazhi("U ruajt te të preferuarat.");
+      if (!response.ok) throw new Error("Ndryshimi dështoi");
+      setMesazhi(saved ? "U ruajt te të preferuarat." : "U hoq nga të preferuarat.");
     } catch {
-      const reverted = new Set(idsRef.current);
-      reverted.delete(id);
-      idsRef.current = reverted;
-      setIds((current) => { const next = new Set(current); next.delete(id); return next; });
-      setTotal((value) => Math.max(0, value - 1));
-      setMesazhi("Nuk u ruajt. Provo përsëri.");
+      caktoStatusin(id, wasSaved);
+      setMesazhi(saved ? "Nuk u ruajt. Provo përsëri." : "Nuk u hoq. Provo përsëri.");
     } finally {
       pendingRef.current.delete(id);
       setPending((value) => { const next = new Set(value); next.delete(id); return next; });
@@ -43,9 +50,11 @@ export function ListaUdhetimeve({ udhetimet, preferuarat, numri, authenticated }
   }
 
   return <>
-    <p aria-live="polite">Të preferuarat <strong>{total}</strong>{" "}
-      {authenticated && <Link href="/preferuarat">Shiko udhëtimet favorite</Link>}
-      {mesazhi && ` · ${mesazhi}`}</p>
+    <div className="favorites-toolbar">
+      <p>Të preferuarat: <strong>{total}</strong></p>
+      {authenticated && <Link className="action" href="/preferuarat">Shiko udhëtimet e mia favorite</Link>}
+    </div>
+    <p className="favorite-status" aria-live="polite">{mesazhi}</p>
     <div className="trip-list">
       {udhetimet.map((udhetim) => {
         const saved = ids.has(udhetim.id);
@@ -54,9 +63,9 @@ export function ListaUdhetimeve({ udhetimet, preferuarat, numri, authenticated }
           <h2>{udhetim.nisja} – {udhetim.destinacioni}</h2>
           <p>Ora: {udhetim.ora} · Vende të lira: {udhetim.vende}</p>
           <Link className="action" href={`/udhetimi/${udhetim.id}`}>Shiko detajet</Link>
-          {authenticated ? <button className="favorite-button" type="button" disabled={saved || waiting}
-            aria-pressed={saved} onClick={() => void ruaj(udhetim.id)}>
-            <span aria-hidden="true">{saved ? "★" : "☆"}</span> {saved ? "I ruajtur" : waiting ? "Po ruhet…" : "Ruaj udhëtimin"}
+          {authenticated ? <button className="favorite-button" type="button" disabled={waiting}
+            aria-pressed={saved} onClick={() => void ndryshoPreferimin(udhetim.id)}>
+            <span aria-hidden="true">{saved ? "★" : "☆"}</span> {waiting ? (saved ? "Po ruhet…" : "Po hiqet…") : saved ? "Hiqe nga favoritët" : "Ruaj si favorit"}
           </button> : <Link className="favorite-button" href="/panel">☆ Hyr për ta ruajtur</Link>}
           <small className="favorite-note">Preferim personal · jo rezervim</small>
         </article>;

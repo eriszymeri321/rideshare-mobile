@@ -26,3 +26,23 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     return Response.json({ error: "Preferimi nuk mund të ruhet tani." }, { status: 503 });
   }
 }
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  if (!userId || !/^\d+$/.test(userId)) {
+    return Response.json({ error: "Hyr para se të heqësh udhëtimin nga të preferuarat." }, { status: 401 });
+  }
+
+  const { id } = await params;
+  try {
+    const sql = getSql();
+    await sql`
+      DELETE FROM udhetimet_preferuara
+      WHERE github_id = ${userId} AND udhetim_id = ${id}
+    `;
+    return Response.json({ saved: false });
+  } catch {
+    return Response.json({ error: "Preferimi nuk mund të hiqet tani." }, { status: 503 });
+  }
+}
