@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Hyrja from "@/components/Hyrja";
+import { PublikoUdhetim } from "@/components/PublikoUdhetim";
 import { profiliIm } from "@/lib/lejet";
 import { ruajOren, ruajRolin } from "./actions";
 
@@ -47,6 +48,7 @@ export default async function Panel({ searchParams }: {
       <button type="submit">Ruaj orën</button>
       <p>Formulari provon ID 2. Serveri verifikon pronarin edhe nëse ID ndryshohet.</p>
     </form> : p && <p>Si udhëtar mund të shohësh udhëtimet; nuk mund të ndryshosh orën e shoferit.</p>}
+    {p?.roli === "shofer" && <PublikoUdhetim />}
     <p><Link href="/">Kthehu te udhëtimet</Link></p>
     <p>Për ndarjen e vendndodhjes live, kërkesa e udhëtarit duhet pranuar nga shoferi. Secili person e nis dhe e ndal vetë ndarjen.</p>
   </main>;

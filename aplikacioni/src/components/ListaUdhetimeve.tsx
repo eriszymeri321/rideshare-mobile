@@ -1,18 +1,35 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Udhetim } from "@/lib/udhetimet";
 
 export function ListaUdhetimeve({ udhetimet, preferuarat, numri, authenticated }: {
   udhetimet: Udhetim[]; preferuarat: string[]; numri: number; authenticated: boolean;
 }) {
+  const [udhetimetAktuale, setUdhetimetAktuale] = useState(udhetimet);
   const [ids, setIds] = useState(() => new Set(preferuarat));
   const idsRef = useRef(new Set(preferuarat));
   const [total, setTotal] = useState(numri);
   const [pending, setPending] = useState(() => new Set<string>());
   const [mesazhi, setMesazhi] = useState("");
   const pendingRef = useRef(new Set<string>());
+
+  useEffect(() => {
+    let ndaluar = false;
+    let timer: number;
+    const rifresko = async () => {
+      try {
+        const response = await fetch("/api/udhetimet", { cache: "no-store" });
+        if (!response.ok) throw new Error("Lista nuk u rifreskua.");
+        const data = await response.json() as { trips?: Udhetim[] };
+        if (!ndaluar && Array.isArray(data.trips)) setUdhetimetAktuale(data.trips);
+      } catch { /* Mbaje listën e fundit kur ka shkëputje të përkohshme. */ }
+      if (!ndaluar) timer = window.setTimeout(rifresko, 5000);
+    };
+    timer = window.setTimeout(rifresko, 5000);
+    return () => { ndaluar = true; window.clearTimeout(timer); };
+  }, []);
 
   function caktoStatusin(id: string, saved: boolean) {
     const kishte = idsRef.current.has(id);
@@ -56,7 +73,7 @@ export function ListaUdhetimeve({ udhetimet, preferuarat, numri, authenticated }
     </div>
     <p className="favorite-status" aria-live="polite">{mesazhi}</p>
     <div className="trip-list">
-      {udhetimet.map((udhetim) => {
+      {udhetimetAktuale.map((udhetim) => {
         const saved = ids.has(udhetim.id);
         const waiting = pending.has(udhetim.id);
         return <article className="trip-card" key={udhetim.id}>
