@@ -16,6 +16,15 @@ main { max-width: 720px; margin: auto; padding: 24px; }
 .favorites-toolbar p { margin: 0; }
 .favorite-status { min-height: 1.5em; }
 section { margin-top: 28px; padding-top: 20px; border-top: 1px solid #8090aa; }
+.request-status-card, .request-entry { display: grid; gap: 8px; margin: 14px 0; padding: 14px; border: 1px solid #536a7a; border-radius: 12px; background: #1d3040; }
+.request-status-card > span { color: #c0d1df; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.request-status-card > strong, .request-entry > span { color: #ffd58a; font-size: 1.25rem; }
+.request-status-pranuar { color: #8de3c2 !important; }
+.request-status-refuzuar { color: #ffaaa0 !important; }
+.request-status-card small { color: #c0d1df; line-height: 1.4; }
+.request-list { margin-top: 18px; }
+.request-entry button { min-height: 42px; margin: 4px 6px 0 0; padding: 8px 14px; border: 0; border-radius: 8px; background: #74dfce; color: #09202b; font-weight: 700; }
+.request-entry button:disabled { background: #39455b; color: #e4eaf4; cursor: default; }
 form { display: grid; gap: 10px; max-width: 480px; margin-top: 18px; }
 input { min-height: 44px; padding: 8px 12px; border: 1px solid #8090aa;
   border-radius: 8px; background: #111b2d; color: #edf2fc; font: inherit; }

@@ -17,7 +17,7 @@ type TeDhena = {
   udhetim: { vende: number };
   kaShoferTjeter: boolean;
   statusKerkese: string | null;
-  kerkesatPerShoferin: { id: number; emri: string; status: "ne_pritje" | "pranuar" | "refuzuar" }[];
+  kerkesatPerShoferin: { id: number; emri: string; status: "ne_pritje" | "pranuar" | "refuzuar"; eshteKerkesaIme: boolean }[];
   pozicionet: Pozicioni[];
   eNdaj: boolean;
   mundTaNdaje: boolean;
@@ -198,6 +198,9 @@ export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
 
   const shoferi = teDhena.pozicionet.find((p) => p.roli === "shofer");
   const udhetaret = teDhena.pozicionet.filter((p) => p.roli === "udhetar");
+  const etiketaStatusit = teDhena.statusKerkese === "ne_pritje" ? "Në pritje"
+    : teDhena.statusKerkese === "pranuar" ? "U pranua"
+      : teDhena.statusKerkese === "refuzuar" ? "U refuzua" : "Pa kërkesë";
 
   return (
     <section aria-labelledby="ndjekja-titull" data-testid="live-location">
@@ -215,18 +218,22 @@ export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
           {veprimNePritje ? "Po dërgohet…" : teDhena.udhetim.vende < 1 ? "Nuk ka vende të lira" : "Kërko vend dhe qasje te vendndodhja"}
         </button>
       )}
-      {teDhena.statusKerkese === "ne_pritje" && <p role="status">Kërkesa jote është në pritje të shoferit.</p>}
-      {teDhena.statusKerkese === "pranuar" && <p role="status">Kërkesa u pranua. Vendi yt është konfirmuar.</p>}
-      {teDhena.statusKerkese === "refuzuar" && <p role="status">Shoferi nuk e pranoi kërkesën.</p>}
-      {teDhena.viewer.eshteShofer && teDhena.kerkesatPerShoferin.length > 0 && <div>
+      {teDhena.statusKerkese && <div className="request-status-card" role="status">
+        <span>{teDhena.viewer.roli === "shofer" ? "Kërkesa jote e dërguar si udhëtar" : "Kërkesa ime"}</span>
+        <strong className={`request-status request-status-${teDhena.statusKerkese}`}>{etiketaStatusit}</strong>
+        {teDhena.statusKerkese === "pranuar" && <small>Vendi yt është konfirmuar.</small>}
+        {teDhena.viewer.roli === "shofer" && <small>Kërkesa ruhet edhe pas ndërrimit të rolit. Shoferi i udhëtimit u përgjigjet kërkesave të udhëtarëve të tjerë.</small>}
+      </div>}
+      {teDhena.viewer.eshteShofer && teDhena.kerkesatPerShoferin.length > 0 && <div className="request-list">
         <h3>Kërkesat për udhëtim</h3>
-        {teDhena.kerkesatPerShoferin.map((k) => <p key={k.id}>
-          {k.emri} · {k.status === "ne_pritje" ? "Në pritje" : k.status === "pranuar" ? "U pranua" : "U refuzua"}{" "}
-          {k.status === "ne_pritje" && <>
+        {teDhena.kerkesatPerShoferin.map((k) => <article className="request-entry" key={k.id}>
+          <strong>{k.emri}{k.eshteKerkesaIme ? " (kërkesa jote si udhëtar)" : ""}</strong>
+          <span>{k.status === "ne_pritje" ? "Në pritje" : k.status === "pranuar" ? "U pranua" : "U refuzua"}</span>
+          {k.status === "ne_pritje" && !k.eshteKerkesaIme && <>
             <button type="button" disabled={offline || veprimNePritje || teDhena.udhetim.vende < 1} onClick={() => void pergjigju(k.id, "prano")}>Prano</button>{" "}
             <button type="button" disabled={offline || veprimNePritje} onClick={() => void pergjigju(k.id, "refuzo")}>Refuzo</button>
           </>}
-        </p>)}
+        </article>)}
       </div>}
       {teDhena.mundTaNdaje && <div>
         <p>Vendndodhja rifreskohet çdo 8 sekonda kur faqja është aktive; pika e fundit hiqet pas 2 minutash pa përditësim.</p>
