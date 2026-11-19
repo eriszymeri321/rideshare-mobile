@@ -34,6 +34,8 @@ export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
   const leximiAktiv = useRef(false);
   const leximNeRadhe = useRef(false);
   const pollId = useRef<number | null>(null);
+  const offlineRef = useRef(false);
+  const statusiFundit = useRef<string | null | undefined>(undefined);
   const api = `/api/udhetimet/${encodeURIComponent(udhetimId)}/ndjekja`;
 
   const lexo = useCallback(async () => {
@@ -48,19 +50,35 @@ export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
           if (!response.ok) {
             if (response.status === 401) {
               setOffline(false);
+              offlineRef.current = false;
               setMesazhi("Hyr me GitHub për këtë funksion.");
             } else {
               throw new Error(data.error ?? "Leximi dështoi.");
             }
           } else {
-            setTeDhena(data as TeDhena);
-            setENdaj((v) => v || Boolean((data as TeDhena).eNdaj));
+            const teReja = data as TeDhena;
+            const uRikthye = offlineRef.current;
+            const statusiNdryshoi = statusiFundit.current !== undefined
+              && statusiFundit.current !== teReja.statusKerkese;
+            if (teReja.statusKerkese === "pranuar" && (uRikthye || statusiNdryshoi)) {
+              setMesazhi("U pranua! Shoferi e konfirmoi kërkesën tënde.");
+            } else if (teReja.statusKerkese === "refuzuar" && (uRikthye || statusiNdryshoi)) {
+              setMesazhi("U refuzua. Shoferi nuk mundi ta konfirmojë kërkesën.");
+            } else if (uRikthye) {
+              setMesazhi(teReja.statusKerkese === "ne_pritje"
+                ? "Lidhja u rikthye. Kërkesa jote është ende në pritje të shoferit."
+                : "Lidhja u rikthye dhe gjendja e udhëtimit u përditësua.");
+            }
+            setTeDhena(teReja);
+            setENdaj((v) => v || Boolean(teReja.eNdaj));
             setOffline(false);
-            setMesazhi("");
+            offlineRef.current = false;
+            statusiFundit.current = teReja.statusKerkese;
           }
         } catch {
           setOffline(true);
-          setMesazhi("Po rilidhemi · të dhënat e fundit mund të jenë të vjetra.");
+          offlineRef.current = true;
+          setMesazhi("Po rilidhemi. Statusi dhe vendet e shfaqura janë nga leximi i fundit dhe mund të kenë ndryshuar.");
         }
         setDukeNgarkuar(false);
       } while (leximNeRadhe.current);
@@ -77,7 +95,11 @@ export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
       if (!stopped) timer = window.setTimeout(poll, 5000);
     };
     const onOnline = () => { if (!stopped) { if (timer) window.clearTimeout(timer); void poll(); } };
-    const onOffline = () => { setOffline(true); setMesazhi("Po rilidhemi · të dhënat e fundit mund të jenë të vjetra."); };
+    const onOffline = () => {
+      offlineRef.current = true;
+      setOffline(true);
+      setMesazhi("Po rilidhemi. Statusi dhe vendet e shfaqura janë nga leximi i fundit dhe mund të kenë ndryshuar.");
+    };
     void poll();
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
@@ -221,7 +243,8 @@ export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
       {teDhena.statusKerkese && <div className="request-status-card" role="status">
         <span>{teDhena.viewer.roli === "shofer" ? "Kërkesa jote e dërguar si udhëtar" : "Kërkesa ime"}</span>
         <strong className={`request-status request-status-${teDhena.statusKerkese}`}>{etiketaStatusit}</strong>
-        {teDhena.statusKerkese === "pranuar" && <small>Vendi yt është konfirmuar.</small>}
+        {offline && <small>Statusi i fundit i njohur · nuk është konfirmuar që është ende i përditësuar.</small>}
+        {teDhena.statusKerkese === "pranuar" && !offline && <small>Vendi yt është konfirmuar.</small>}
         {teDhena.viewer.roli === "shofer" && <small>Kërkesa ruhet edhe pas ndërrimit të rolit. Lidhe udhëtimin me profilin tënd si shofer që ta trajtosh nga lista e kërkesave.</small>}
       </div>}
       {teDhena.viewer.eshteShofer && teDhena.kerkesatPerShoferin.length > 0 && <div className="request-list">
