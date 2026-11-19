@@ -222,14 +222,14 @@ export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
         <span>{teDhena.viewer.roli === "shofer" ? "Kërkesa jote e dërguar si udhëtar" : "Kërkesa ime"}</span>
         <strong className={`request-status request-status-${teDhena.statusKerkese}`}>{etiketaStatusit}</strong>
         {teDhena.statusKerkese === "pranuar" && <small>Vendi yt është konfirmuar.</small>}
-        {teDhena.viewer.roli === "shofer" && <small>Kërkesa ruhet edhe pas ndërrimit të rolit. Shoferi i udhëtimit u përgjigjet kërkesave të udhëtarëve të tjerë.</small>}
+        {teDhena.viewer.roli === "shofer" && <small>Kërkesa ruhet edhe pas ndërrimit të rolit. Lidhe udhëtimin me profilin tënd si shofer që ta trajtosh nga lista e kërkesave.</small>}
       </div>}
       {teDhena.viewer.eshteShofer && teDhena.kerkesatPerShoferin.length > 0 && <div className="request-list">
         <h3>Kërkesat për udhëtim</h3>
         {teDhena.kerkesatPerShoferin.map((k) => <article className="request-entry" key={k.id}>
           <strong>{k.emri}{k.eshteKerkesaIme ? " (kërkesa jote si udhëtar)" : ""}</strong>
           <span>{k.status === "ne_pritje" ? "Në pritje" : k.status === "pranuar" ? "U pranua" : "U refuzua"}</span>
-          {k.status === "ne_pritje" && !k.eshteKerkesaIme && <>
+          {k.status === "ne_pritje" && <>
             <button type="button" disabled={offline || veprimNePritje || teDhena.udhetim.vende < 1} onClick={() => void pergjigju(k.id, "prano")}>Prano</button>{" "}
             <button type="button" disabled={offline || veprimNePritje} onClick={() => void pergjigju(k.id, "refuzo")}>Refuzo</button>
           </>}

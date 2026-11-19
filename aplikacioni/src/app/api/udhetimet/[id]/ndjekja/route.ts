@@ -108,14 +108,12 @@ export async function POST(request: Request, { params }: Context) {
           ctx.sql`SELECT id FROM udhetimet WHERE id = ${id} FOR UPDATE`,
           ctx.sql`UPDATE kerkesat_udhetimit SET status = 'pranuar', ndryshuar_me = clock_timestamp()
             WHERE id = ${Number(body.kerkesaId)} AND udhetim_id = ${id} AND status = 'ne_pritje'
-              AND udhetar_id <> ${ctx.profili.id}
               AND EXISTS (SELECT 1 FROM udhetimet WHERE id = ${id} AND vende > 0)
             RETURNING id`,
           ctx.sql`UPDATE udhetimet SET vende = vende - 1
             WHERE id = ${id} AND EXISTS (
               SELECT 1 FROM kerkesat_udhetimit WHERE id = ${Number(body.kerkesaId)}
                 AND udhetim_id = ${id} AND status = 'pranuar'
-                AND udhetar_id <> ${ctx.profili.id}
                 AND ndryshuar_me > transaction_timestamp()
             )`,
         ]);
@@ -123,7 +121,6 @@ export async function POST(request: Request, { params }: Context) {
       } else {
         rows = await ctx.sql`UPDATE kerkesat_udhetimit SET status = 'refuzuar', ndryshuar_me = now()
           WHERE id = ${Number(body.kerkesaId)} AND udhetim_id = ${id} AND status = 'ne_pritje'
-            AND udhetar_id <> ${ctx.profili.id}
           RETURNING id`;
       }
       if (!rows.length) return Response.json({ error: "Kërkesa nuk u gjet ose është trajtuar." }, { status: 409 });
