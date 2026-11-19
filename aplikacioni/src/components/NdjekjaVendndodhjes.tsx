@@ -14,41 +14,74 @@ type Pozicioni = {
 };
 type TeDhena = {
   viewer: { emri: string; roli: "shofer" | "udhetar"; eshteShofer: boolean };
+  udhetim: { vende: number };
   kaShoferTjeter: boolean;
   statusKerkese: string | null;
-  kerkesatNePritje: { id: number; emri: string }[];
+  kerkesatPerShoferin: { id: number; emri: string; status: "ne_pritje" | "pranuar" | "refuzuar" }[];
   pozicionet: Pozicioni[];
   eNdaj: boolean;
   mundTaNdaje: boolean;
 };
 
-export function NdjekjaVendndodhjes({ udhetimId, vende }: { udhetimId: string; vende: number }) {
+export function NdjekjaVendndodhjes({ udhetimId }: { udhetimId: string }) {
   const [teDhena, setTeDhena] = useState<TeDhena | null>(null);
   const [dukeNgarkuar, setDukeNgarkuar] = useState(true);
   const [poNdaj, setPoNdaj] = useState(false);
   const [mesazhi, setMesazhi] = useState("");
   const [eNdaj, setENdaj] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const [veprimNePritje, setVeprimNePritje] = useState(false);
+  const leximiAktiv = useRef(false);
+  const leximNeRadhe = useRef(false);
   const pollId = useRef<number | null>(null);
   const api = `/api/udhetimet/${encodeURIComponent(udhetimId)}/ndjekja`;
 
   const lexo = useCallback(async () => {
+    if (leximiAktiv.current) { leximNeRadhe.current = true; return; }
+    leximiAktiv.current = true;
     try {
-      const response = await fetch(api, { cache: "no-store" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(response.status === 401 ? "Hyr me GitHub për këtë funksion." : data.error);
-      setTeDhena(data as TeDhena);
-      setENdaj((v) => v || Boolean((data as TeDhena).eNdaj));
-    } catch (error) {
-      setMesazhi(error instanceof Error ? error.message : "Nuk u lexua gjendja e udhëtimit.");
+      do {
+        leximNeRadhe.current = false;
+        try {
+          const response = await fetch(api, { cache: "no-store" });
+          const data = await response.json();
+          if (!response.ok) {
+            if (response.status === 401) {
+              setOffline(false);
+              setMesazhi("Hyr me GitHub për këtë funksion.");
+            } else {
+              throw new Error(data.error ?? "Leximi dështoi.");
+            }
+          } else {
+            setTeDhena(data as TeDhena);
+            setENdaj((v) => v || Boolean((data as TeDhena).eNdaj));
+            setOffline(false);
+            setMesazhi("");
+          }
+        } catch {
+          setOffline(true);
+          setMesazhi("Po rilidhemi · të dhënat e fundit mund të jenë të vjetra.");
+        }
+        setDukeNgarkuar(false);
+      } while (leximNeRadhe.current);
     } finally {
-      setDukeNgarkuar(false);
+      leximiAktiv.current = false;
     }
   }, [api]);
 
   useEffect(() => {
-    const initial = window.setTimeout(() => void lexo(), 0);
-    const timer = window.setInterval(() => void lexo(), 7000);
-    return () => { window.clearTimeout(initial); window.clearInterval(timer); };
+    let timer: number | undefined;
+    let stopped = false;
+    const poll = async () => {
+      await lexo();
+      if (!stopped) timer = window.setTimeout(poll, 5000);
+    };
+    const onOnline = () => { if (!stopped) { if (timer) window.clearTimeout(timer); void poll(); } };
+    const onOffline = () => { setOffline(true); setMesazhi("Po rilidhemi · të dhënat e fundit mund të jenë të vjetra."); };
+    void poll();
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => { stopped = true; if (timer) window.clearTimeout(timer); window.removeEventListener("online", onOnline); window.removeEventListener("offline", onOffline); };
   }, [lexo]);
 
   useEffect(() => () => {
@@ -56,6 +89,7 @@ export function NdjekjaVendndodhjes({ udhetimId, vende }: { udhetimId: string; v
   }, []);
 
   async function dergo(body: Record<string, unknown>) {
+    if (!navigator.onLine) throw new Error("Je offline. Veprimi do të jetë i disponueshëm pasi të rilidhesh.");
     const response = await fetch(api, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -127,27 +161,36 @@ export function NdjekjaVendndodhjes({ udhetimId, vende }: { udhetimId: string; v
   }
 
   async function kerkoVend() {
+    if (veprimNePritje || offline) return;
+    setVeprimNePritje(true);
     try {
       await dergo({ veprim: "kerko" });
       setMesazhi("Kërkesa iu dërgua shoferit. Vendndodhja ndahet vetëm nëse ai e pranon.");
       await lexo();
     } catch (error) { setMesazhi(error instanceof Error ? error.message : "Kërkesa dështoi."); }
+    finally { setVeprimNePritje(false); }
   }
 
   async function pergjigju(kerkesaId: number, vendimi: "prano" | "refuzo") {
+    if (veprimNePritje || offline) return;
+    setVeprimNePritje(true);
     try {
       await dergo({ veprim: "pergjigju", kerkesaId, vendimi });
       setMesazhi(vendimi === "prano" ? "Kërkesa u pranua; tani mund të ndani vendndodhjen." : "Kërkesa u refuzua.");
       await lexo();
     } catch (error) { setMesazhi(error instanceof Error ? error.message : "Përgjigjja dështoi."); }
+    finally { setVeprimNePritje(false); }
   }
 
   async function merrUdhetimin() {
+    if (veprimNePritje || offline) return;
+    setVeprimNePritje(true);
     try {
       await dergo({ veprim: "merr" });
       setMesazhi("Udhëtimi u lidh me profilin tënd të shoferit.");
       await lexo();
     } catch (error) { setMesazhi(error instanceof Error ? error.message : "Nuk u lidh udhëtimi."); }
+    finally { setVeprimNePritje(false); }
   }
 
   if (dukeNgarkuar) return <section><h2>Vendndodhja live</h2><p>Po ngarkohet…</p></section>;
@@ -159,31 +202,37 @@ export function NdjekjaVendndodhjes({ udhetimId, vende }: { udhetimId: string; v
   return (
     <section aria-labelledby="ndjekja-titull" data-testid="live-location">
       <h2 id="ndjekja-titull">Vendndodhja live e udhëtimit</h2>
+      <p>Vende të lira: <strong>{teDhena.udhetim.vende}</strong></p>
       <p>Kërkesa dhe koordinatat janë private për shoferin dhe udhëtarët e pranuar. Ndarja fiket nga secili person kur të dojë.</p>
       {teDhena.viewer.roli === "shofer" && !teDhena.viewer.eshteShofer && (
         teDhena.kaShoferTjeter
           ? <p role="status">Ky udhëtim është tashmë i lidhur me një shofer tjetër. Zgjidh një udhëtim pa shofer për ta lidhur me profilin tënd.</p>
-          : <><p>Ky udhëtim nuk ka ende shofer të lidhur.</p><button className="action" onClick={merrUdhetimin}>Lidhe këtë udhëtim me profilin tim</button></>
+          : <><p>Ky udhëtim nuk ka ende shofer të lidhur.</p><button className="action" disabled={offline || veprimNePritje} onClick={merrUdhetimin}>Lidhe këtë udhëtim me profilin tim</button></>
       )}
       {teDhena.viewer.roli === "udhetar" && teDhena.viewer.eshteShofer && <p>Ky udhëtim është i lidhur me profilin tënd si shofer.</p>}
       {!teDhena.viewer.eshteShofer && teDhena.viewer.roli === "udhetar" && !teDhena.statusKerkese && (
-        <button className="action" onClick={kerkoVend} disabled={vende < 1}>Kërko vend dhe qasje te vendndodhja</button>
+        <button className="action" onClick={kerkoVend} disabled={teDhena.udhetim.vende < 1 || offline || veprimNePritje}>
+          {veprimNePritje ? "Po dërgohet…" : teDhena.udhetim.vende < 1 ? "Nuk ka vende të lira" : "Kërko vend dhe qasje te vendndodhja"}
+        </button>
       )}
       {teDhena.statusKerkese === "ne_pritje" && <p role="status">Kërkesa jote është në pritje të shoferit.</p>}
+      {teDhena.statusKerkese === "pranuar" && <p role="status">Kërkesa u pranua. Vendi yt është konfirmuar.</p>}
       {teDhena.statusKerkese === "refuzuar" && <p role="status">Shoferi nuk e pranoi kërkesën.</p>}
-      {teDhena.viewer.eshteShofer && teDhena.kerkesatNePritje.length > 0 && <div>
+      {teDhena.viewer.eshteShofer && teDhena.kerkesatPerShoferin.length > 0 && <div>
         <h3>Kërkesat për udhëtim</h3>
-        {teDhena.kerkesatNePritje.map((k) => <p key={k.id}>
-          {k.emri}{" "}
-          <button type="button" onClick={() => void pergjigju(k.id, "prano")}>Prano</button>{" "}
-          <button type="button" onClick={() => void pergjigju(k.id, "refuzo")}>Refuzo</button>
+        {teDhena.kerkesatPerShoferin.map((k) => <p key={k.id}>
+          {k.emri} · {k.status === "ne_pritje" ? "Në pritje" : k.status === "pranuar" ? "U pranua" : "U refuzua"}{" "}
+          {k.status === "ne_pritje" && <>
+            <button type="button" disabled={offline || veprimNePritje || teDhena.udhetim.vende < 1} onClick={() => void pergjigju(k.id, "prano")}>Prano</button>{" "}
+            <button type="button" disabled={offline || veprimNePritje} onClick={() => void pergjigju(k.id, "refuzo")}>Refuzo</button>
+          </>}
         </p>)}
       </div>}
       {teDhena.mundTaNdaje && <div>
         <p>Vendndodhja rifreskohet çdo 8 sekonda kur faqja është aktive; pika e fundit hiqet pas 2 minutash pa përditësim.</p>
         {eNdaj
-          ? <button className="action" type="button" onClick={() => void ndaloNdarjen()}>Ndalo ndarjen e vendndodhjes</button>
-          : <button className="action" type="button" disabled={poNdaj} onClick={nisNdarjen}>
+          ? <button className="action" type="button" disabled={offline} onClick={() => void ndaloNdarjen()}>Ndalo ndarjen e vendndodhjes</button>
+          : <button className="action" type="button" disabled={poNdaj || offline} onClick={nisNdarjen}>
             {poNdaj ? "Po kërkojmë vendndodhjen…" : "Ndaj vendndodhjen time live"}
           </button>}
       </div>}

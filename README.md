@@ -1,5 +1,10 @@
 # RideShare
 
+## Java 10 · të dhënat fiktive për sinkronizim
+
+1. Në Neon SQL Editor ekzekuto `aplikacioni/schema-java10.sql` pas migrimeve Java 8. Skripti shton udhëtimet provë 10 dhe 11 me nga 2 vende dhe mund të ekzekutohet sërish pa krijuar dublikatë. Nëse përdor të njëjtat ID për prova të mëparshme, kthe vendet në 2 dhe pastro/rihap kërkesën përmes ndërfaqes së aplikacionit.
+2. Përdor udhëtimin 10 për provat e kërkesës dhe pranimit; përdor 11 për provën offline. Provat me dy përdorues kërkojnë dy sesione të ndara RideShare.
+
 ## Java 8 · ndarja e vendndodhjes live
 
 1. Migrimi `aplikacioni/schema-java08.sql` është aplikuar në databazën e konfiguruar. Në një databazë të re ekzekuto `schema-java05.sql` dhe pastaj `schema-java08.sql` nga Neon SQL Editor.

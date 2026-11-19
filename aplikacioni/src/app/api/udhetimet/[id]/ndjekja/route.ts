@@ -31,10 +31,10 @@ export async function GET(_request: Request, { params }: Context) {
     if ("error" in ctx) return Response.json({ error: ctx.error }, { status: ctx.error === "hyr" ? 401 : 404 });
     const eshteShofer = ctx.udhetimi.shofer_id === ctx.profili.id;
     const mundTaShohe = eshteShofer || ctx.kerkesa?.status === "pranuar";
-    const kerkesatNePritje = eshteShofer
-      ? await ctx.sql`SELECT k.id, p.emri FROM kerkesat_udhetimit k
+    const kerkesatPerShoferin = eshteShofer
+      ? await ctx.sql`SELECT k.id, k.status, p.emri FROM kerkesat_udhetimit k
         JOIN profilet p ON p.github_id = k.udhetar_id
-        WHERE k.udhetim_id = ${id} AND k.status = 'ne_pritje' ORDER BY k.krijuar_me`
+        WHERE k.udhetim_id = ${id} ORDER BY k.krijuar_me`
       : [];
     const pozicionet = mundTaShohe
       ? await ctx.sql`SELECT v.profile_id AS id, p.emri, p.roli, v.latitude, v.longitude,
@@ -49,9 +49,10 @@ export async function GET(_request: Request, { params }: Context) {
     const eNdaj = pozicionet.some((p) => p.id === ctx.profili.id);
     return Response.json({
       viewer: { emri: ctx.profili.emri, roli: ctx.profili.roli, eshteShofer },
+      udhetim: { vende: Number(ctx.udhetimi.vende) },
       kaShoferTjeter: Boolean(ctx.udhetimi.shofer_id && !eshteShofer),
       statusKerkese: ctx.kerkesa?.status ?? null,
-      kerkesatNePritje,
+      kerkesatPerShoferin,
       pozicionet,
       eNdaj,
       mundTaNdaje: eshteShofer || ctx.kerkesa?.status === "pranuar",
@@ -83,10 +84,16 @@ export async function POST(request: Request, { params }: Context) {
       if (ctx.profili.roli !== "udhetar" || ctx.udhetimi.shofer_id === ctx.profili.id || Number(ctx.udhetimi.vende) < 1) {
         return Response.json({ error: "Ky udhëtim nuk mund të kërkohet nga ky profil." }, { status: 403 });
       }
-      await ctx.sql`INSERT INTO kerkesat_udhetimit (udhetim_id, udhetar_id)
-        VALUES (${id}, ${ctx.profili.id}) ON CONFLICT (udhetim_id, udhetar_id)
+      const rows = await ctx.sql`INSERT INTO kerkesat_udhetimit (udhetim_id, udhetar_id)
+        SELECT ${id}, ${ctx.profili.id} FROM udhetimet WHERE id = ${id} AND vende > 0
+        ON CONFLICT (udhetim_id, udhetar_id)
         DO UPDATE SET status = 'ne_pritje', ndryshuar_me = now()
-        WHERE kerkesat_udhetimit.status = 'refuzuar'`;
+        WHERE kerkesat_udhetimit.status = 'refuzuar' RETURNING id`;
+      if (!rows.length) {
+        const existing = await ctx.sql`SELECT status FROM kerkesat_udhetimit
+          WHERE udhetim_id = ${id} AND udhetar_id = ${ctx.profili.id}`;
+        if (!existing.length) return Response.json({ error: "Nuk ka vende të lira." }, { status: 409 });
+      }
       return Response.json({ ok: true });
     }
 
@@ -94,10 +101,28 @@ export async function POST(request: Request, { params }: Context) {
       if (ctx.udhetimi.shofer_id !== ctx.profili.id || !["prano", "refuzo"].includes(String(body.vendimi))) {
         return Response.json({ error: "Vetëm shoferi i udhëtimit mund t’i përgjigjet kërkesës." }, { status: 403 });
       }
-      const rows = await ctx.sql`UPDATE kerkesat_udhetimit SET
-          status = ${body.vendimi === "prano" ? "pranuar" : "refuzuar"}, ndryshuar_me = now()
-        WHERE id = ${Number(body.kerkesaId)} AND udhetim_id = ${id} AND status = 'ne_pritje'
-        RETURNING id`;
+      let rows;
+      if (body.vendimi === "prano") {
+        // Lock the trip first so concurrent accepts cannot consume its last seat twice.
+        const [, changed] = await ctx.sql.transaction([
+          ctx.sql`SELECT id FROM udhetimet WHERE id = ${id} FOR UPDATE`,
+          ctx.sql`UPDATE kerkesat_udhetimit SET status = 'pranuar', ndryshuar_me = clock_timestamp()
+            WHERE id = ${Number(body.kerkesaId)} AND udhetim_id = ${id} AND status = 'ne_pritje'
+              AND EXISTS (SELECT 1 FROM udhetimet WHERE id = ${id} AND vende > 0)
+            RETURNING id`,
+          ctx.sql`UPDATE udhetimet SET vende = vende - 1
+            WHERE id = ${id} AND EXISTS (
+              SELECT 1 FROM kerkesat_udhetimit WHERE id = ${Number(body.kerkesaId)}
+                AND udhetim_id = ${id} AND status = 'pranuar'
+                AND ndryshuar_me > transaction_timestamp()
+            )`,
+        ]);
+        rows = changed;
+      } else {
+        rows = await ctx.sql`UPDATE kerkesat_udhetimit SET status = 'refuzuar', ndryshuar_me = now()
+          WHERE id = ${Number(body.kerkesaId)} AND udhetim_id = ${id} AND status = 'ne_pritje'
+          RETURNING id`;
+      }
       if (!rows.length) return Response.json({ error: "Kërkesa nuk u gjet ose është trajtuar." }, { status: 409 });
       return Response.json({ ok: true });
     }

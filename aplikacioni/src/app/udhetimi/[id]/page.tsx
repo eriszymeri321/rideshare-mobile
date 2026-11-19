@@ -32,14 +32,8 @@ export default async function Detajet({
       <h1>{udhetim.nisja} – {udhetim.destinacioni}</h1>
       <p>Ora: {udhetim.ora}</p>
       <p>Vendtakimi: {udhetim.vendtakimi}</p>
-      <p>Vende të lira: {udhetim.vende}</p>
       <PikaNisjes />
-      <NdjekjaVendndodhjes udhetimId={id} vende={udhetim.vende} />
-      {udhetim.vende > 0 ? (
-        <Link className="action" href={`/udhetimi/${id}/kerkesa`}>
-          Kërko vend
-        </Link>
-      ) : <button className="action" disabled>Nuk ka vende të lira</button>}
+      <NdjekjaVendndodhjes udhetimId={id} />
     </main>
   );
 }
